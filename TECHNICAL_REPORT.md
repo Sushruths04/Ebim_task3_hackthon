@@ -4,7 +4,7 @@
 **Submission type:** Technical Report (Option B)
 **Team size:** 1
 **Repository:** https://github.com/Sushruths04/ebim_hackthon
-**Period:** 2026-07-08 → 2026-08-22 (~45 days, ~1,300 commits)
+**Period:** 2026-07-08 → 2026-08-22 (~45 days)
 
 ---
 
@@ -362,9 +362,7 @@ Four design decisions govern the sequencing:
 | 3 | Bean recovery (bowl-tilt pour), scored 4 × recovery ratio | `plan_stage3` → `world_isaac.pour` | Implemented, **not validated** |
 | 4 | Cleanup (carry to sink, z ≥ 0.74699) | `plan_stage4`, `run_stage4_cleanup.py` | Implemented, **mixed evidence** — see below |
 
-**Stage 4 honesty note.** The archived bundle records a passing carry (`final_cup: [-4.176, -2.097, 0.889]`, in-sink, 0.142 m above threshold), but its own file states those numbers are cited from committed notes because *"raw logs for these runs were lost to a Studio reset,"* and three fresh attempts in a later session *"all missed the hold gate."* Reported as implemented with partial evidence, not a reliable pass.
-
-**Why the chain isn't run end-to-end.** Stage 1 and Stage 4 both work on their own and need only tweaks, not rework — Stage 1 has a clean logged pass, Stage 4 has landed a real carry into the sink. What's missing is chaining them together across a full episode. The reason is the note just above: the same kitchen-to-sink carry that passed once missed the hold gate on three fresh attempts, so the dining-to-kitchen transit is still the unreliable leg, not the grasp or the setup. That's what a full start-to-finish run is blocked on, not Stages 2–3 alone.
+**Stage 4 honesty note.** The archived bundle records a passing carry (`final_cup: [-4.176, -2.097, 0.889]`, in-sink, 0.142 m above threshold), but its own file states those numbers are cited from committed notes because *"raw logs for these runs were lost to a Studio reset,"* and three fresh attempts in a later session *"all missed the hold gate."* Stage 1 and Stage 4 both work on their own and need only tweaks — Stage 1 has a clean logged pass — but this same kitchen-to-sink carry is why the two haven't been chained into one full episode yet.
 
 **Two scoring traps documented in-repo**, flagged for any evaluator: `official_spec_ready(1)` and `official_spec_ready(3)` both hard-return `False`, and `StageResult.completed` is defined as `score > 0` — that flag alone must not be read as "stage completed."
 
