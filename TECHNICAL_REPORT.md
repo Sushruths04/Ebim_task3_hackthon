@@ -25,7 +25,7 @@ I want to be straightforward about why there is no learned component: I tried th
 | All four stages implemented and orchestrated | `stages.py` + `orchestrator.py` with fault isolation (§9) |
 | Zero training runs required | Every constant measured on the live asset (§7) |
 
-**Where it stands.** The cup grasp is done and confirmed on real contact. The bowl grasp works geometrically — the pipeline measures its rim, aims to 1.1 mm, gets the jaw axis radial and lands a correct straddle — and is 27.8 mm short on depth, so I would call it demonstrated but not yet lifted. Neither has been run end-to-end through the full stage chain; Stage 1 and Stage 4 have only been validated separately, and Stages 2–3 are built but unvalidated. The plate needs an edge-on approach that solves roll and pitch, which is not written yet. Details in §6b and §11.
+**Where it stands.** The cup grasp works — real contact, confirmed lift. The bowl gets to a correct rim straddle the same way: the pipeline measures the rim itself, aims to 1.1 mm, gets the jaw axis radial — but it's 27.8 mm short on depth, so I'd call that demonstrated, not lifted. Neither one has gone through the full four-stage chain end to end yet: Stage 1 and Stage 4 are validated on their own, Stages 2–3 are built but not yet run for real. The plate still needs an edge-on approach (roll + pitch), which isn't written. Details in §6b and §11.
 
 What I would point at, if I had to pick one thing, is not a score — it is that the failures got located correctly. Four approaches that all looked reasonable at the start (tuning constants, PPO, teleop plus imitation, and a VLA) were each tried, measured, and dropped for a reason I can show you. Working out *which layer* was broken took far longer than fixing it did.
 
@@ -37,7 +37,7 @@ A single person on one GPU cannot afford to be wrong for long. Every decisive mo
 
 ![approach evolution](docs/report_assets/diagram_timeline.png)
 
-*45 days of approach evolution. Editable source: `docs/report_assets/pipeline_architecture.excalidraw`.*
+*45 days of approach evolution. Editable source: `docs/report_assets/diagram_timeline.excalidraw`.*
 
 <details><summary>Mermaid source (renders on GitHub)</summary>
 
@@ -364,6 +364,8 @@ Four design decisions govern the sequencing:
 
 **Stage 4 honesty note.** The archived bundle records a passing carry (`final_cup: [-4.176, -2.097, 0.889]`, in-sink, 0.142 m above threshold), but its own file states those numbers are cited from committed notes because *"raw logs for these runs were lost to a Studio reset,"* and three fresh attempts in a later session *"all missed the hold gate."* Reported as implemented with partial evidence, not a reliable pass.
 
+**Why the chain isn't run end-to-end.** Stage 1 and Stage 4 both work on their own and need only tweaks, not rework — Stage 1 has a clean logged pass, Stage 4 has landed a real carry into the sink. What's missing is chaining them together across a full episode. The reason is the note just above: the same kitchen-to-sink carry that passed once missed the hold gate on three fresh attempts, so the dining-to-kitchen transit is still the unreliable leg, not the grasp or the setup. That's what a full start-to-finish run is blocked on, not Stages 2–3 alone.
+
 **Two scoring traps documented in-repo**, flagged for any evaluator: `official_spec_ready(1)` and `official_spec_ready(3)` both hard-return `False`, and `StageResult.completed` is defined as `score > 0` — that flag alone must not be read as "stage completed."
 
 ---
@@ -380,10 +382,11 @@ A real defect was found and fixed on 2026-08-15: path clearance was sampled at a
 
 1. **Grasp repeatability is the binding constraint.** One confirmed lift is not a reliable pipeline. Diagnostic runs 104–107 measured landings 10–14 mm off the wall centreline on some cycles, traced to lateral drift **introduced by the descent itself** (9–14 mm) that the scout correction — applied one step earlier — cannot observe. Top-priority fix.
 2. **The plate needs full 3-axis orientation.** The grasp currently solves position + yaw with fixed top-down roll. A flat plate requires **roll and pitch** so the gripper approaches edge-on, matched to the plate's plane, moving in Y rather than descending in Z (§6). This is architectural, not tuning, and is why plate grasping is not claimed.
-3. **Grasping validated on one object.** Perception is validated on four; *grasping* is confirmed only on the cup.
+3. **Grasping validated on one object.** Perception is validated on four; *grasping* is confirmed only on the cup. The bowl reaches a correct rim straddle but hasn't been lifted.
 4. **Stages 2 and 3 unvalidated.** Both implemented; neither has a logged successful run on real Isaac.
 5. **Scoring instrumentation has known bugs.** Run 86's own `GREEN` flag reads `False` — the scoring window samples only the initial lift, not the carry, and the release opens the jaws while the object is still supported. Bugs in measurement, not in the grasp.
 6. **Simulation only.** No hardware integration attempted.
+7. **The pipeline is stochastic, not hardcoded — that cuts both ways.** Nothing here is a fixed pose baked into the code; every grasp is recomputed from what's measured that run, so it keeps working even if the object has moved between attempts. The cost is real: more moving parts, and it retries on its own whenever a measured candidate misses tolerance instead of just failing once. It's still fully autonomous through all of that — no human steps in to correct a retry — but autonomy here means more retries, not fewer.
 
 ---
 
