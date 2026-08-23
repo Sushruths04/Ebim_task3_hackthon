@@ -3,7 +3,7 @@
 **Task 3: Autonomous Tabletop Manipulation**
 **Submission type:** Technical Report (Option B)
 **Team size:** 1
-**Repository:** https://github.com/Sushruths04/ebim_hackthon
+**Repository:** https://github.com/Sushruths04/Ebim_task3_hackthon
 **Period:** 2026-07-08 → 2026-08-22 (~45 days)
 
 ---
