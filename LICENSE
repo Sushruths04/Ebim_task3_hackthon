@@ -1,0 +1,55 @@
+PROPRIETARY SOFTWARE LICENCE — ALL RIGHTS RESERVED
+
+Copyright (c) 2026 Sushruth Shivaraju. All rights reserved.
+
+This software, the container image built from it, the calibration data, the
+maps, the recorded robot trajectories and every other file in this repository
+(together, "the Work") are the exclusive property of the copyright holder.
+
+1. NO LICENCE IS GRANTED BY DEFAULT
+   No right to use, copy, modify, merge, publish, distribute, sublicense, sell,
+   train a model on, or create derivative works of the Work is granted to any
+   person or organisation, except as expressly stated in section 2. Any such
+   act requires the prior WRITTEN permission of the copyright holder.
+
+2. LIMITED EVALUATION LICENCE
+   Solely for the organisers of the EBiM Benchmark and their appointed
+   evaluators, and solely for the duration of the benchmark's evaluation period,
+   a non-exclusive, non-transferable, revocable licence is granted to:
+     (a) pull and run the container image for the purpose of evaluating this
+         submission, and
+     (b) record the results of that evaluation and publish them as part of the
+         benchmark's ordinary results reporting.
+   This licence does NOT permit retaining, redistributing, extracting,
+   decompiling, disassembling or reverse-engineering the Work or any part of
+   it, nor using it for any purpose other than that evaluation.
+
+3. NO REVERSE ENGINEERING
+   Except where such a restriction is void under applicable law, you may not
+   decompile, disassemble, extract from a container layer, or otherwise attempt
+   to derive the source code, calibration values, model weights or trade
+   secrets embodied in the Work.
+
+4. NO TRANSFER OF OWNERSHIP
+   Possession of a copy of the Work, or of a container image built from it,
+   confers no ownership and no implied licence.
+
+5. TERMINATION
+   Any breach terminates all rights under section 2 immediately and
+   automatically.
+
+6. NO WARRANTY
+   THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+   IN CONNECTION WITH THE WORK OR ITS USE. THE WORK CONTROLS PHYSICAL ROBOT
+   HARDWARE AND IS USED ENTIRELY AT THE OPERATOR'S OWN RISK.
+
+7. THIRD-PARTY COMPONENTS
+   The Work incorporates third-party open-source components which remain under
+   their own licences. See THIRD_PARTY_NOTICES.
+
+8. CONTACT
+   Permission requests: sushruths04@gmail.com

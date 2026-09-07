@@ -1,90 +1,99 @@
-# EBiM Benchmark — Task 3 Submission
+# EBiM Task 3 — Assisted Living & Feeding
 
-Autonomous tabletop manipulation for the EBiM Autonomous Robot Benchmark
-(Rulebook 1.0), Task 3. Mobile dual-arm Franka FR3 with Robotiq 2F-85
-grippers, in Isaac Sim.
+Autonomous table setting on a dual-arm mobile manipulator.
 
-The full write-up, including measured results and current limitations, is in
-[`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md) (PDF alongside it).
-
-## What this is
-
-A physics-only manipulation pipeline: no imitation learning, no VLA, no
-trained policy in the control loop. The robot perceives an object with its own
-head camera, derives a grasp from measured geometry, plans a collision-aware
-trajectory with cuRobo, and closes on verified physical contact.
-
-## Build
+## Build and run
 
 ```bash
-docker build -t ebim-task3:submission .
+docker build -t ebim-task3 .
+
+docker run --rm --network host \
+  -e ROS_DOMAIN_ID=0 \
+  -e VISION_ENDPOINT=http://<host>:8643 \
+  -e VISION_API_KEY=<supplied separately> \
+  ebim-task3
 ```
 
-The base image (`nvcr.io/nvidia/isaac-lab`) is pinned **by digest**, so a
-future repush of the tag cannot change what gets built. It is anonymously
-pullable — no `docker login` required.
-
-## Run
-
-Chained Stage 1 → Stage 4 (table setup, then cleanup to the sink), which is
-the flow this submission targets:
+To select a different object and destination:
 
 ```bash
-docker run --rm --gpus all \
-  -v "$PWD/outputs:/workspace/EBiM_Challenge/outputs" \
-  ebim-task3:submission \
-  --order 1,4 --seed 42 --head-placement a
+docker run --rm --network host -e ROS_DOMAIN_ID=0 \
+  -e VISION_ENDPOINT=... -e VISION_API_KEY=... \
+  ebim-task3 --object "the rim of the bowl" --onto "the rim of the plate"
 ```
 
-All four stages:
+## What it does
 
-```bash
-docker run --rm --gpus all \
-  -v "$PWD/outputs:/workspace/EBiM_Challenge/outputs" \
-  ebim-task3:submission \
-  --seed 42 --head-placement a
-```
+From one command and with no operator, the robot parks its idle arm, homes the
+working arm, drives until the pick can run, locates the object and its
+destination, picks the object at its rim, carries it, places it on the
+destination's measured surface, and returns to a known configuration. Each
+stage reports its measurement and the run stops at the first stage that fails.
 
-Useful flags: `--order` (which stages, comma-separated), `--seed`,
-`--head-placement {a,b,c}`, `--record-video`, `--out-dir`.
-
-An episode prints a JSON `EPISODE_RESULT` line with per-stage scores and
-writes it under `--out-dir` (default `outputs/task3_pipeline`).
+The grasp is a rim-wall grasp: one jaw inside the rim and one outside, closing
+across the wall. It is the method that generalises, because a bowl and a plate
+are both wider than the gripper's stroke.
 
 ## Requirements
 
-- NVIDIA GPU with the container toolkit (`--gpus all`). Developed and measured
-  on a single L4 (23 GB).
-- ~60 GB free disk for the image.
+| | |
+|---|---|
+| Robot | dual 7-DoF arms on a shared vertical rail, parallel gripper, mobile base; ROS 2 Humble control stack running and accepting goals |
+| Cameras | one head camera and one wrist depth camera, publishing |
+| **Network** | **required at run time.** The policy calls a vision service over HTTP; see below. |
+| Host | share the robot's ROS 2 network with `--network host` |
+| **Safety** | **an operator must be holding the emergency stop.** The container asserts this on start. |
 
-## Tests (CPU, no GPU needed)
+> **Network access is required.** Perception is a call to a vision service at
+> `VISION_ENDPOINT`. With no route to it the container exits 4 immediately and
+> does not move the robot. It will not run under `--network none`.
 
-The perception, grasp-geometry and state-machine logic are unit-testable
-without Isaac:
+## Environment
+
+| variable | default | meaning |
+|---|---|---|
+| `ROS_DOMAIN_ID` | `0` | must match the robot's control stack |
+| `VISION_ENDPOINT` | — | vision service URL; **required** |
+| `VISION_API_KEY` | — | supplied separately; not baked into the image |
+| `TMR_WS` | unset | overlay ROS workspace, if the robot needs one |
+| `EBIM_REQUIRE_VISION` | `1` | set `0` to start even if the vision service does not answer |
+
+## Check the image before a run
 
 ```bash
-python -m pytest task3_pipeline/tests task3_autonomy/tests -q
+docker run --rm ebim-task3 --selftest    # loads its own modules and exits
+docker run --rm ebim-task3 --version     # build stamp
 ```
 
-## Layout
+## Exit codes
 
-| Path | What |
-|---|---|
-| `task3_pipeline/` | Orchestrator, stages, scoring, world adapter, perception |
-| `task3_autonomy/` | Navigation, arm control, grasp planning, GraspGenX client |
-| `scripts/scenes/` | Scene construction and robot configuration |
-| `docker/` | Container entrypoint |
-| `TECHNICAL_REPORT.md` | Method, results, limitations |
-
-## Stage coverage
-
-| Stage | What it is | State |
+| code | meaning | action |
 |---|---|---|
-| 1 | Table setup — objects to assigned seats | Implemented; validated (`cup_lift_m` 0.1112, 3.0 s hold) |
-| 2 | Feeding — scoop and hold | Implemented; not validated |
-| 3 | Bean recovery — bowl-tilt pour | Implemented; not validated |
-| 4 | Cleanup — objects to the sink | Implemented |
+| `0` | the task completed | — |
+| `3` | calibration or map missing from the image | the image is broken; contact us |
+| `4` | vision service unreachable within 8 s | check `VISION_ENDPOINT` and egress |
+| `5` | no robot found on the ROS network | check the control stack, `ROS_DOMAIN_ID`, and `--network host` |
+| other | a stage failed | the last lines name the stage and its measurement |
 
-Stages 2 and 3 are implemented but unvalidated, which is why the documented
-run above uses `--order 1,4`. See the report for the measured evidence behind
-each of these.
+Every run prints its stages and measurements to stdout. If something fails,
+those lines are the diagnosis — please include them if you contact us.
+
+## Behaviour that is correct, but may look wrong
+
+- **It reports that it cannot measure whether the object rose after the grasp.**
+  That is what success looks like here: a held object sits inside the wrist
+  camera's near blind zone, so the hold is confirmed from the head camera.
+- **The idle arm is parked before anything else happens.** Both arms share one
+  vertical rail, so the idle arm must be moved clear before any descent.
+- **The robot returns through its home configuration between picking and
+  placing.** Deliberate — it is what keeps the arm out of a self-collision.
+
+## Licence
+
+Proprietary, all rights reserved — see [LICENSE](LICENSE). The benchmark
+organizers are granted a licence to run this image for evaluation and to
+publish the result. No other use is permitted.
+
+## Contact
+
+Include the output of `--version` and the last 20 lines of the run.

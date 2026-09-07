@@ -1,4 +1,16 @@
-__pycache__/
+# This repository must never contain source, calibration, maps or credentials.
+*.py
 *.pyc
-outputs/
-.venv/
+*.pgm
+*.mcap
+*.db3
+*.env
+grasp_heights.json
+waypoints*.json
+control/
+perception/
+moveit/
+maps/
+measurements/
+docs/
+*.pdf
