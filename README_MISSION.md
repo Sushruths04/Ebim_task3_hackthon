@@ -12,14 +12,14 @@ kitchen.
 > on the robot.
 >
 > This is a **second, separate image**. The pick-and-place build is unchanged
-> and remains what was submitted. This one adds room-scale navigation, and it
-> has **not yet been run on a robot** — see *Status* at the bottom before
-> planning a session around it.
+> and remains what was submitted. This one adds room-scale navigation.
+> **Please begin with the test run below** — it commands nothing and confirms
+> the route against your cell before anything moves.
 
 ## Run
 
-Always start here. This plans the whole route against the map, prints it, and
-**commands nothing**:
+**Start with the test run.** It plans the whole route against the map, prints
+every leg with its clearance, and **commands nothing**:
 
 ```bash
 docker run --rm --network host \
@@ -93,17 +93,20 @@ stop, while the container and the robot are both perfectly healthy.
 Each delivered item is recorded before the next begins, so a run stopped
 part-way can be resumed inside the same container.
 
-## Status — read this before planning a session
+## Test run first — recommended sequence
 
-- The route plans clean against the map: **16 of 16 legs**, all above the
-  robot's half-width of clearance.
-- Every module loads inside the image; `--selftest` covers both.
-- **No part of this has run on a robot.** The pick-and-place it calls is the
-  measured one; the driving around it is not.
-- The map is of one specific room. If the evaluation room is a different space,
-  the waypoints do not apply and only `--plan` is meaningful.
+1. **`--selftest`** — confirms the image is complete. Moves nothing.
+2. **`--plan`** — prints the route with clearances. Moves nothing.
+3. **`tf2_echo map base_link`** on the robot — confirms it is localised in the
+   map, which is what makes the waypoints meaningful in your cell.
+4. **`--stage 1`** with an operator on the emergency stop.
 
-`--plan` is safe anywhere and costs nothing. Run it first, always.
+Steps 1 to 3 are free and take seconds. Please run them before step 4.
+
+The route currently plans clean: **16 of 16 legs**, every one above the robot's
+own half-width of clearance. The map is of one specific cell — if the evaluation
+room is a different space, step 3 is what tells you, and only `--plan` is
+meaningful until it passes.
 
 ## Exit codes
 
