@@ -6,7 +6,7 @@ Everything needed to run it is on this page.
 ## 1 · The image
 
 ```
-ghcr.io/sushruths04/ebim-task3-mission:1.2.0
+ghcr.io/sushruths04/ebim-task3-mission:1.3.0
 ```
 
 Built for **linux/amd64 and linux/arm64**. The companion is a Jetson (arm64) and
@@ -42,11 +42,11 @@ Safe at any time, a few seconds each. Please run these first.
 
 ```bash
 # a) is the image complete?
-docker run --rm ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --selftest
+docker run --rm ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --selftest
 
 # b) print the whole driving route with clearances
 docker run --rm --network host -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --plan
 
 # c) on the robot: is it localised in the map?
 ros2 run tf2_ros tf2_echo map base_link
@@ -70,7 +70,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to you directly> \
   -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -99,7 +99,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to you directly> \
   -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -121,7 +121,7 @@ The arm is homed at the end regardless of outcome.
 ### Stage 4 — dining table back to the kitchen
 
 ```bash
-... ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --stage 4 --i-am-on-the-estop
+... ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --stage 4 --i-am-on-the-estop
 ```
 
 The same motion in the other direction: each item is collected from its lettered
