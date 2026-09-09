@@ -11,8 +11,8 @@ operator in the loop.
 > **There is also a navigation build.** This README covers the submitted
 > pick-and-place: the robot squares up to an object in front of it, picks it and
 > places it. A second image adds driving between rooms — see
-> [README_MISSION.md](README_MISSION.md). It has not yet been run on a robot, so
-> the build described here is the submission.
+> [README_MISSION.md](README_MISSION.md), which opens with a test-run sequence.
+> The build described here is the submission.
 
 ## Run
 
