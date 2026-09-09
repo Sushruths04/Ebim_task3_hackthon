@@ -3,6 +3,11 @@
 Autonomous pick-and-place on a dual-arm mobile manipulator. One command, no
 operator in the loop.
 
+> **On an arm64 host (the Jetson companion), use the multi-architecture image
+> instead** — this build is amd64 only. It carries the same pick-and-place plus
+> the navigation: `ghcr.io/sushruths04/ebim-task3-mission:1.1.0`, see
+> [README_MISSION.md](README_MISSION.md).
+>
 > **There is also a navigation build.** This README covers the submitted
 > pick-and-place: the robot squares up to an object in front of it, picks it and
 > places it. A second image adds driving between rooms — see
