@@ -3,6 +3,12 @@
 Autonomous pick-and-place on a dual-arm mobile manipulator. One command, no
 operator in the loop.
 
+> **There is also a navigation build.** This README covers the submitted
+> pick-and-place: the robot squares up to an object in front of it, picks it and
+> places it. A second image adds driving between rooms — see
+> [README_MISSION.md](README_MISSION.md). It has not yet been run on a robot, so
+> the build described here is the submission.
+
 ## Run
 
 ```bash
