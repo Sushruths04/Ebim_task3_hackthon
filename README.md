@@ -11,7 +11,6 @@ docker build -t ebim-task3 .
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  -e VISION_API_KEY=<supplied to the organizers directly> \
   ebim-task3
 ```
 
@@ -22,7 +21,6 @@ named:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  -e VISION_API_KEY=<supplied to the organizers directly> \
   ebim-task3 --object "the rim of the bowl" --onto "the rim of the plate"
 ```
 
@@ -31,14 +29,14 @@ docker run --rm --network host \
 | variable | required | default | meaning |
 |---|---|---|---|
 | `VISION_ENDPOINT` | **yes** | — | the vision service. **Sent to the organizers directly, not published here.** The container exits `4` before moving if this is unset or unreachable. |
-| `VISION_API_KEY` | **yes** | — | sent with the endpoint |
+| `VISION_API_KEY` | no | — | not needed when `VISION_ENDPOINT` is set; the service holds its own credential |
 | `ROS_DOMAIN_ID` | no | `0` | must match the robot's control stack |
 | `EBIM_REQUIRE_VISION` | no | `1` | set `0` to start even if the vision service does not answer |
 | `TMR_WS` | no | unset | overlay ROS workspace, if the robot needs one |
 
-The vision service is hosted and operated by us and is live. It needs no setup
-on your side and no credential for you to manage — only that the container can
-reach it over HTTPS.
+The vision service is hosted and operated by us and is live. **There is no
+credential for you to set** — the service holds its own. All the container needs
+is the address and outbound HTTPS to reach it.
 
 **The address is provided to the organizers directly rather than published in
 this repository**, so that the service stays available for evaluation. Once you
