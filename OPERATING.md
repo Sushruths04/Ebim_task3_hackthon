@@ -11,7 +11,7 @@ pick-and-place**, and the **full autonomous Stage 1**. Both come from one image.
 right build automatically.
 
 ```
-ghcr.io/sushruths04/ebim-task3-mission:1.2.0
+ghcr.io/sushruths04/ebim-task3-mission:1.3.0
 ```
 
 **Which machine.** The computer that runs the FR3 arm control stack — the one
@@ -41,7 +41,7 @@ emergency stop** — the container refuses to move without `--i-am-on-the-estop`
 ## 1 · Check the image (moves nothing, ~20 s)
 
 ```bash
-docker run --rm ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --selftest
+docker run --rm ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --selftest
 ```
 
 Expect `self-test PASSED`. This confirms every module loads and the map and
@@ -61,7 +61,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied directly> \
   -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -92,7 +92,7 @@ dining table without further input.
 
 ```bash
 docker run --rm --network host -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --plan
 ```
 
 Prints every drive with its distance and the tightest clearance on it. `16/16
@@ -116,7 +116,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied directly> \
   -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -140,7 +140,7 @@ At the end the arm is returned home regardless of outcome.
 ### 3.5 Stage 4 — bringing them back
 
 ```bash
-... ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --stage 4 --i-am-on-the-estop
+... ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --stage 4 --i-am-on-the-estop
 ```
 
 The same motion in the other direction: each item is collected from the dining
