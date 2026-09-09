@@ -5,7 +5,7 @@ operator in the loop.
 
 > **On an arm64 host (the Jetson companion), use the multi-architecture image
 > instead** — this build is amd64 only. It carries the same pick-and-place plus
-> the navigation: `ghcr.io/sushruths04/ebim-task3-mission:1.1.0`, see
+> the navigation: `ghcr.io/sushruths04/ebim-task3-mission:1.2.0`, see
 > [README_MISSION.md](README_MISSION.md).
 >
 > **There is also a navigation build.** This README covers the submitted
@@ -13,6 +13,9 @@ operator in the loop.
 > places it. A second image adds driving between rooms — see
 > [README_MISSION.md](README_MISSION.md), which opens with a test-run sequence.
 > The build described here is the submission.
+
+> **Running this on the testbed?** [OPERATING.md](OPERATING.md) has every
+> command, both scenarios, and what the robot does at each step.
 
 ## Run
 
