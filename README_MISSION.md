@@ -24,7 +24,7 @@ every leg with its clearance, and **commands nothing**:
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --plan
 ```
 
 If every leg reports `PASS`, the robot can drive the route. Then, with an
@@ -35,7 +35,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to the organizers directly> \
   -e TMR_WS=/ws -v $HOME/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -57,7 +57,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to the organizers directly> \
   -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
