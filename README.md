@@ -1,112 +1,68 @@
 # EBiM Task 3 — Assisted Living & Feeding
 
-Autonomous pick-and-place on a dual-arm mobile manipulator. One command, no
-operator in the loop.
+Autonomous table setting and clearing on a dual-arm mobile manipulator.
 
-> **On an arm64 host (the Jetson companion), use the multi-architecture image
-> instead** — this build is amd64 only. It carries the same pick-and-place plus
-> the navigation: `ghcr.io/sushruths04/ebim-task3-mission:1.2.0`, see
-> [README_MISSION.md](README_MISSION.md).
+> ## ▶ Running this on the testbed? Read **[OPERATING.md](OPERATING.md)**
 >
-> **There is also a navigation build.** This README covers the submitted
-> pick-and-place: the robot squares up to an object in front of it, picks it and
-> places it. A second image adds driving between rooms — see
-> [README_MISSION.md](README_MISSION.md), which opens with a test-run sequence.
-> The build described here is the submission.
+> Every command, both scenarios, which machine to run it on, what the robot does
+> at each step, and what every exit code means. It is the only document you need.
 
-> **Running this on the testbed?** [OPERATING.md](OPERATING.md) has every
-> command, both scenarios, and what the robot does at each step.
+## The image
 
-## Run
-
-```bash
-docker build -t ebim-task3 .
-
-docker run --rm --network host \
-  -e ROS_DOMAIN_ID=0 \
-  -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  ebim-task3
+```
+ghcr.io/sushruths04/ebim-task3-mission:1.2.0
 ```
 
-The default task is the cup onto the plate. Any object and destination can be
-named:
+Built for **linux/amd64 and linux/arm64** — the companion is a Jetson, and
+Docker selects the right build automatically. Nothing is emulated on the robot.
+
+## What it can do
+
+| scenario | command | what happens |
+|---|---|---|
+| **Single pick-and-place** | `autorun --object "the rim of the cup" --onto "the rim of the plate"` | The robot squares up to an object in front of it, picks it, places it on the named destination, and homes. No driving between rooms. |
+| **Stage 1 — table setting** | `--stage 1` | From its start pose: drives to the kitchen, finds each item, picks it, raises the rail, drives to the dining table, and releases it at its lettered place. Cup, bowl, then plate. |
+| **Stage 4 — clearing** | `--stage 4` | The same in reverse: each item is collected from the dining table and returned to the marked area in the kitchen. |
+| **Both** | `--stage all` | Stage 1, then Stage 4. |
+
+Every one of those needs `--i-am-on-the-estop`. Without it nothing is commanded.
+
+## Try it without moving anything
+
+All three are safe to run at any time and take seconds:
 
 ```bash
-docker run --rm --network host \
-  -e ROS_DOMAIN_ID=0 \
-  -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  ebim-task3 --object "the rim of the bowl" --onto "the rim of the plate"
+# 1. is the image complete?
+docker run --rm ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --selftest
+
+# 2. print the whole driving route with clearances
+docker run --rm --network host -e ROS_DOMAIN_ID=0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.2.0 --plan
+
+# 3. on the robot: is it localised in the map?
+ros2 run tf2_ros tf2_echo map base_link
 ```
 
-## Environment
+**[OPERATING.md](OPERATING.md) explains what to do with each answer**, and gives
+the full run commands including the two mounts every real run needs.
 
-| variable | required | default | meaning |
-|---|---|---|---|
-| `VISION_ENDPOINT` | **yes** | — | the vision service. **Sent to the organizers directly, not published here.** The container exits `4` before moving if this is unset or unreachable. |
-| `VISION_API_KEY` | no | — | not needed when `VISION_ENDPOINT` is set; the service holds its own credential |
-| `ROS_DOMAIN_ID` | no | `0` | must match the robot's control stack |
-| `EBIM_REQUIRE_VISION` | no | `1` | set `0` to start even if the vision service does not answer |
-| `TMR_WS` | no | unset | overlay ROS workspace, if the robot needs one |
-
-The vision service is hosted and operated by us and is live. **There is no
-credential for you to set** — the service holds its own. All the container needs
-is the address and outbound HTTPS to reach it.
-
-**The address is provided to the organizers directly rather than published in
-this repository**, so that the service stays available for evaluation. Once you
-have it, confirm it answers before a run:
-
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' "$VISION_ENDPOINT/health"   # expect 200
-```
-
-## Requirements
+## Requirements, in brief
 
 | | |
 |---|---|
-| Robot | dual 7-DoF arms on a shared vertical rail, parallel gripper, mobile base |
-| Stack | ROS 2 Humble control stack running and accepting goals; cameras publishing |
-| Network | `--network host` to share the robot's ROS 2 network, **and outbound HTTPS** to reach the vision service |
+| Machine | the computer running the FR3 arm stack — where `ros2 topic list \| grep /right/` prints topics |
+| Stack | ROS 2 Humble control stack accepting goals; cameras publishing |
+| Network | `--network host`, and outbound HTTPS for the vision service |
 | Compute | no GPU required |
-| **Safety** | **an operator must hold the emergency stop.** The container asserts this before it moves. |
+| **Safety** | **an operator must hold the emergency stop.** The container asserts this before it moves and returns the arm home at the end regardless of outcome. |
 
-## What it does each round
+## Documents
 
-1. Parks the idle arm inside the base envelope. Both arms share one rail, so the
-   idle one is put away before anything descends.
-2. Homes the working arm.
-3. Drives until the object is reachable, steering on what it can see.
-4. Finds the object, picks it, carries it, and places it on the named
-   destination.
-5. Returns the arm to its home position at the end, whatever happened.
-
-Progress is printed as it goes.
-
-## Check before a run
-
-```bash
-docker run --rm ebim-task3 --selftest   # loads the policy and exits; moves nothing
-docker run --rm ebim-task3 --version    # build stamp
-```
-
-## Exit codes
-
-| code | meaning | what to check |
-|---|---|---|
-| `0` | completed | — |
-| `3` | the image is incomplete | contact us |
-| `4` | vision service unset or unreachable | `VISION_ENDPOINT`, and outbound HTTPS from the host |
-| `5` | no robot found on the ROS network | the control stack, `ROS_DOMAIN_ID`, and `--network host` |
-| other | a stage failed | the last lines of output name the stage |
-
-If a run fails, the printed output is the diagnosis. Please send the last 20
-lines and the output of `--version`.
-
-## Between rounds
-
-Return the robot to its marked start pose, put the items back on the kitchen
-table, clear the destination surface, and open the gripper. Each `docker run`
-starts a fresh round; nothing carries over.
+| file | for |
+|---|---|
+| **[OPERATING.md](OPERATING.md)** | **running it — start here** |
+| [README_MISSION.md](README_MISSION.md) | detail on the navigation build |
+| this file | what the project is |
 
 ## Licence
 
