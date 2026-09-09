@@ -6,6 +6,11 @@ place on the dining table, and brings the items back to the marked area in the
 kitchen.
 
 > [!IMPORTANT]
+> **Built for `linux/amd64` and `linux/arm64`.** The companion is a Jetson —
+> arm64 — and the original submitted image is amd64 only, so it cannot run
+> there. Docker picks the right architecture automatically; nothing is emulated
+> on the robot.
+>
 > This is a **second, separate image**. The pick-and-place build is unchanged
 > and remains what was submitted. This one adds room-scale navigation, and it
 > has **not yet been run on a robot** — see *Status* at the bottom before
@@ -19,7 +24,7 @@ Always start here. This plans the whole route against the map, prints it, and
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.0.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.1.0 --plan
 ```
 
 If every leg reports `PASS`, the robot can drive the route. Then, with an
@@ -30,7 +35,7 @@ docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT=<supplied to the organizers directly> \
   -e TMR_WS=/ws -v $HOME/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.0.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.1.0 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -42,6 +47,20 @@ docker run --rm --network host \
 | `--stage 4` | dining table → the marked area in the kitchen |
 | `--stage all` | both, in order (default) |
 | `--fresh` | ignore any part-finished run and start over |
+| `autorun ...` | the **single pick-and-place**, same behaviour as the submitted build |
+
+Because the submitted image is amd64 only, this one also carries the plain
+pick-and-place so a single arm64 image covers both:
+
+```bash
+docker run --rm --network host \
+  -e ROS_DOMAIN_ID=0 \
+  -e VISION_ENDPOINT=<supplied to the organizers directly> \
+  -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
+  ghcr.io/sushruths04/ebim-task3-mission:1.1.0 \
+  autorun --object "the rim of the cup" --onto "the rim of the plate" \
+  --i-am-on-the-estop
+```
 
 ## Environment
 
