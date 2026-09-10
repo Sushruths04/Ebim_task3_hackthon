@@ -152,6 +152,14 @@ place on the dining table and returned to the marked area in the kitchen.
 | `TMR_WS` + the `-v` mount | **yes, for a real run** | the robot's own ROS workspace. The policy needs `franka_msgs` from it; the packaged version lacks the `PTPMotion` action. |
 | `ROS_DOMAIN_ID` | no | must match the control stack; default `0` |
 
+## 8b · Hosting perception yourself
+
+The policy asks one thing of perception: an image and a phrase in, one pixel
+out. No calibration, no knowledge of the robot. Any service answering that
+contract can be substituted — including one you host.
+See [ALTERNATIVES.md](ALTERNATIVES.md) for the contract and for open models that
+fit it unmodified.
+
 ## 9 · If something goes wrong
 
 | exit code | meaning | what to check |
