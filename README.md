@@ -3,6 +3,10 @@
 Autonomous table setting and clearing on a dual-arm mobile manipulator.
 Everything needed to run it is on this page.
 
+> Everything needed to run this is on this page. [OPERATING.md](OPERATING.md)
+> is the same material laid out as a step-by-step operating guide, and
+> [ALTERNATIVES.md](ALTERNATIVES.md) covers hosting the perception yourself.
+
 ## 1 · The image
 
 ```
