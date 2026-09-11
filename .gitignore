@@ -1,16 +1,18 @@
-# This repository must never contain source, calibration, maps or credentials.
+# Keep policy source and private data out; the localisation helpers are public.
 *.py
 *.pyc
+*.json
 *.pgm
-*.mcap
-*.db3
+*.yaml
+!localisation/odom_to_tf.py
+!localisation/tf_probe.py
+!localisation/slam_localisation.yaml
+*.yml
 *.env
-grasp_heights.json
-waypoints*.json
+*.db3
+*.mcap
 control/
 perception/
 moveit/
 maps/
 measurements/
-docs/
-*.pdf

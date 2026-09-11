@@ -24,7 +24,7 @@ every leg with its clearance, and **commands nothing**:
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 --plan
 ```
 
 If every leg reports `PASS`, the robot can drive the route. Then set the vision
@@ -35,11 +35,9 @@ with an operator on the emergency stop:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -62,11 +60,9 @@ pick-and-place so a single arm64 image covers both:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```

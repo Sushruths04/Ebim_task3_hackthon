@@ -11,7 +11,7 @@ pick-and-place**, and the **full autonomous Stage 1**. Both come from one image.
 right build automatically.
 
 ```
-ghcr.io/sushruths04/ebim-task3-mission:1.4.1
+ghcr.io/sushruths04/ebim-task3-mission:1.4.2
 ```
 
 **On the Jetson, every `docker` command needs `--network host`** — its kernel
@@ -24,22 +24,20 @@ where this prints topics:
 ros2 topic list | grep /right/
 ```
 
-This image is ROS 2 Humble. ROS 2 does not communicate across distros, so on a
-host running a different distro it will report `no /right/* topics` and stop,
-while the container and the robot are both perfectly healthy.
+Use the ROS 2 Humble control stack and matching robot workspaces.
+A missing topic alone does not diagnose a distribution mismatch.
 
 **What must be running already:** the arm control stack accepting goals, the
 cameras publishing, and the mobile base. **An operator must be holding the
 emergency stop** — the container refuses to move without `--i-am-on-the-estop`.
 
-**Four things every real run needs:**
+**Three things every real run needs:**
 
 | | |
 |---|---|
 | `export VISION_ENDPOINT='...'` once, then `-e VISION_ENDPOINT` | the vision service, supplied to you directly |
 | `-v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro` | the robot's arm workspace. The policy needs `franka_msgs` from it — the packaged version lacks the `PTPMotion` action. |
 | `-v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro` | the robot's spine workspace, for `franka_spine_msgs` |
-| `-v /home/tmr-user/fastdds_udp_only.xml:...:ro -e FASTRTPS_DEFAULT_PROFILES_FILE=...` | the robot's own network profile; without it no camera images reach the container |
 
 **Mount each workspace at its own path**, exactly as above. They are built with
 symlinks to absolute paths, so mounted anywhere else they appear empty; the
@@ -52,13 +50,16 @@ the log says which one is in use.
 
 ---
 
+For localisation bring-up and the read-only `--check-data` camera diagnostic,
+follow [README sections 4c–4d](README.md).
+
 ## 1 · Check the image (moves nothing, ~20 s)
 
 ```bash
 docker run --rm --network host \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --selftest
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 --selftest
 ```
 
 Expect `self-test PASSED -- image complete, robot workspaces verified`. This
@@ -78,11 +79,9 @@ destination, both in front of it. **It does not drive between rooms.**
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -97,9 +96,9 @@ docker run --rm --network host \
    than wandering.
 4. Locates the object and the destination in one look, in the arm's own frame.
 5. Picks, returns through home, places, releases.
-6. Homes the arm — whatever happened.
+6. Attempts to home the arm, reporting a failure if the controller refuses.
 
-Any object and destination can be named.
+The calibrated rim-grasp objects are the cup, bowl and plate.
 
 **The object is always set down in the centre of the destination.** `--onto
 "the rim of the plate"` means *in the middle of the plate*: the robot finds the
@@ -110,11 +109,9 @@ the plate's floor. So to put the **bowl in the centre of the plate**:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   autorun --object "the rim of the bowl" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -134,7 +131,7 @@ dining table without further input.
 
 ```bash
 docker run --rm --network host -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 --plan
 ```
 
 Prints every drive with its distance and the tightest clearance on it. `16/16
@@ -146,9 +143,10 @@ legs clear` means the route is geometrically sound.
 ros2 run tf2_ros tf2_echo map base_link
 ```
 
-**This is the one that matters.** The route drives to coordinates in a map. If
-this prints a transform, the robot is localised and those coordinates are
-meaningful. If it cannot find the frame, localisation is not running: put the
+**This is the one that matters.** The route drives to coordinates in a map. A
+fresh transform must come from the supplied arena localisation, and the pose at
+the dock must be near x 1.86, y 3.48, yaw −90.5°. A transform alone does not prove
+which map is loaded. Use the domain and DDS settings in README section 4c. If it cannot find the frame, localisation is not running: put the
 robot on its charging dock, run `localisation/start_localisation.sh` from this
 repository on the companion (README section 4d) and leave it running, then check
 again. If the frame still does not appear, run only the single pick-and-place.
@@ -159,11 +157,9 @@ again. If the frame still does not appear, run only the single pick-and-place.
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -182,7 +178,7 @@ Starting at the dock, for the cup, then the bowl, then the plate:
 | **6** | Looks for the letter with the head camera, slides the base along the table if the arm needs it to reach, releases the object there, and homes the arm. If the letter cannot be seen, it places in front of the pose that faces that letter, and says so in the log. |
 | **7** | Drives back to the kitchen for the next item. |
 
-At the end the arm is returned home regardless of outcome.
+At the end the arm is homed; a homing failure is reported as a failed run.
 
 **Which letter is whose.** By default the cup goes to **c**, the bowl to **b**
 and the plate to **a**. If the round assigns them differently, add `--assign`,
@@ -204,11 +200,9 @@ the black rectangle. Several at once: `--move cup=a,plate=c`.
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
-  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
-  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.2 \
   --stage 4 --i-am-on-the-estop
 ```
 
@@ -241,7 +235,8 @@ Without `--i-am-on-the-estop` nothing is commanded, whatever else is passed.
 ## 5 · If something goes wrong
 
 Before anything moves, a real run checks the robot's messages, the vision
-service and the robot, in that order, and stops at the first that fails.
+service, the robot, and that data from the arm and the wrist camera actually
+arrives, in that order, and stops at the first that fails.
 
 | exit code | meaning | what to check |
 |---|---|---|
@@ -251,14 +246,15 @@ service and the robot, in that order, and stops at the first that fails.
 | `4` | vision service unset, or no answer within 45 s | `VISION_ENDPOINT`, and outbound HTTPS from that machine |
 | `5` | no robot found | the control stack, `ROS_DOMAIN_ID`, `--network host`, and that you are on the arm computer |
 | `6` | the robot workspaces are not visible | the two workspace mounts, each at its own path (section 0) |
+| `7` | robot topics are visible but their data does not arrive | arm and wrist publishers, callback counts from `--check-data`, and any DDS profile override |
 
 Every stage prints its own measurement as it runs, and the run stops at the
 first stage that fails rather than carrying a fault forward. **If a run fails,
 those printed lines are the diagnosis** — please send the last 20 lines and the
 output of `--version`.
 
-These messages are refusals rather than faults, and mean the policy is working
-as intended. The arm is homed afterwards as usual.
+Pre-flight refusals happen before motion. After a run starts, cleanup attempts
+to home the arm; a controller fault can prevent homing.
 
 - **"the route to '…' passes N cm from an obstacle, under the robot's 45 cm
   half-width. Refused, not driven."** — something blocks the way; the base did
