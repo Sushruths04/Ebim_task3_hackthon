@@ -32,13 +32,14 @@ while the container and the robot are both perfectly healthy.
 cameras publishing, and the mobile base. **An operator must be holding the
 emergency stop** — the container refuses to move without `--i-am-on-the-estop`.
 
-**Three things every real run needs:**
+**Four things every real run needs:**
 
 | | |
 |---|---|
 | `export VISION_ENDPOINT='...'` once, then `-e VISION_ENDPOINT` | the vision service, supplied to you directly |
 | `-v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro` | the robot's arm workspace. The policy needs `franka_msgs` from it — the packaged version lacks the `PTPMotion` action. |
 | `-v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro` | the robot's spine workspace, for `franka_spine_msgs` |
+| `-v /home/tmr-user/fastdds_udp_only.xml:...:ro -e FASTRTPS_DEFAULT_PROFILES_FILE=...` | the robot's own network profile; without it no camera images reach the container |
 
 **Mount each workspace at its own path**, exactly as above. They are built with
 symlinks to absolute paths, so mounted anywhere else they appear empty; the
@@ -77,6 +78,8 @@ destination, both in front of it. **It does not drive between rooms.**
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -107,6 +110,8 @@ the plate's floor. So to put the **bowl in the centre of the plate**:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -143,8 +148,10 @@ ros2 run tf2_ros tf2_echo map base_link
 
 **This is the one that matters.** The route drives to coordinates in a map. If
 this prints a transform, the robot is localised and those coordinates are
-meaningful. If it cannot find the frame, localisation is not running and the
-navigation cannot be used in this cell — please tell us rather than continuing.
+meaningful. If it cannot find the frame, localisation is not running: put the
+robot on its charging dock, run `localisation/start_localisation.sh` from this
+repository on the companion (README section 4d) and leave it running, then check
+again. If the frame still does not appear, run only the single pick-and-place.
 
 ### 3.3 Run it
 
@@ -152,6 +159,8 @@ navigation cannot be used in this cell — please tell us rather than continuing
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -195,6 +204,8 @@ the black rectangle. Several at once: `--move cup=a,plate=c`.
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \

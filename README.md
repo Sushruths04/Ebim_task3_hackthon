@@ -43,6 +43,10 @@ Fixes everything reported against 1.3.0:
   the release point.
 - `--assign` sets the lettered places for a round; `--move cup=a` moves a single
   object (section 6).
+- Every real-run command mounts the robot's own network profile, so camera
+  images reach the container (section 8).
+- `localisation/` starts localisation in the arena map when the robot has none
+  (section 4d).
 
 ### Run it in this order
 
@@ -60,8 +64,9 @@ export VISION_ENDPOINT='<supplied to you directly>'
 4. **Stage 1** — section 6, with an operator on the emergency stop.
 5. **Stage 4** — section 6.
 
-If step 3 finds no map frame, run the single pick-and-place (section 5) instead
-of the stages.
+If step 3 finds no map frame, start localisation (section 4d) and repeat step 3.
+If it still finds none, run the single pick-and-place (section 5) instead of the
+stages.
 
 ## 2 · Which machine to run it on
 
@@ -111,7 +116,35 @@ ros2 run tf2_ros tf2_echo map base_link
 - **(c)** is the important one. The autonomous stages drive to coordinates in a
   map, so the robot must place itself in that map for them to mean anything. If
   this prints a transform, the navigation is usable here. **If it cannot find
-  the frame, please tell us and run only the pick-and-place** (section 5).
+  the frame, start localisation (section 4d) and check again.** Only if it still
+  cannot, run the single pick-and-place (section 5).
+
+## 4d · If (c) cannot find the map frame — start localisation
+
+The autonomous stages need the robot placed in the arena map. If
+`tf2_echo map base_link` says the frame does not exist, nothing is running that
+places it there. The `localisation/` folder in this repository starts it, using
+the map recorded in this arena and tools already on the companion
+(`slam_toolbox`, ROS 2 Humble).
+
+1. **Put the robot on its charging dock.** Localisation starts from there.
+2. On the companion, in its own terminal, and leave it running:
+
+   ```bash
+   git clone https://github.com/Sushruths04/Ebim_task3_hackthon.git   # or: git pull
+   cd Ebim_task3_hackthon/localisation
+   ./start_localisation.sh
+   ```
+
+   It publishes the two lidar frames (the robot's scans are stamped
+   `lidar_front` / `lidar_rear`, which nothing else publishes) and runs
+   `slam_toolbox` in localisation mode against `arena_map`. It uses the robot's
+   own DDS profile (`~/fastdds_udp_only.xml`) when it is there.
+3. In another terminal, repeat (c): `ros2 run tf2_ros tf2_echo map base_link`
+   should now print a transform close to x 1.86, y 3.48 — the dock.
+4. Run the stages (section 6) while it keeps running. Ctrl-C stops it afterwards.
+
+If `slam_toolbox` is missing: `sudo apt install ros-humble-slam-toolbox`.
 
 ## 5 · Scenario A — a single pick-and-place
 
@@ -130,6 +163,8 @@ export VISION_ENDPOINT='<supplied to you directly>'
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -160,6 +195,8 @@ the plate's floor. So to put the **bowl in the centre of the plate**:
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -179,6 +216,8 @@ width away from the destination, so its rim is seen on its own.
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -220,6 +259,8 @@ the black rectangle. Several at once: `--move cup=a,plate=c`.
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
   -e VISION_ENDPOINT \
+  -v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro \
+  -e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
   ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
@@ -256,6 +297,7 @@ kitchen table.
 | `VISION_ENDPOINT` | for a real run | the vision service, supplied to you directly. Hosted and operated by us — nothing to set up, no credential for you to manage. Not needed for `--plan` or `--selftest`. |
 | `-v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro` | **yes, for a real run** | the robot's arm workspace. The policy needs `franka_msgs` from it; the packaged version lacks the `PTPMotion` action. |
 | `-v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro` | **yes, for a real run** | the robot's spine workspace, for `franka_spine_msgs`. |
+| `-v /home/tmr-user/fastdds_udp_only.xml:/home/tmr-user/fastdds_udp_only.xml:ro` and `-e FASTRTPS_DEFAULT_PROFILES_FILE=/home/tmr-user/fastdds_udp_only.xml` | **yes, for a real run** | the robot's own network profile (UDP only), the one its start scripts use. Without it the container sees the camera topics but receives no images from them. Every real-run command on this page includes it. |
 | `ROS_DOMAIN_ID` | no | must match the control stack; default `0` |
 | `-v /home/tmr-user/teleop_home_pose.yaml:/home/tmr-user/teleop_home_pose.yaml:ro` | no | the image carries the robot's recorded home pose; this mount uses the host's current file instead. The log says which is in use. |
 
