@@ -44,6 +44,25 @@ Fixes everything reported against 1.3.0:
 - `--assign` sets the lettered places for a round; `--move cup=a` moves a single
   object (section 6).
 
+### Run it in this order
+
+On the computer that runs the arm control stack (section 2), in one shell:
+
+```bash
+# 0. the vision service -- supplied to you directly. Every real run reads it.
+export VISION_ENDPOINT='<supplied to you directly>'
+```
+
+1. **`--selftest`** — section 4a. Moves nothing.
+2. **`--plan`** — section 4b. Moves nothing.
+3. **`tf2_echo map base_link`** — section 4c. Tells you whether the stages can
+   drive in this room.
+4. **Stage 1** — section 6, with an operator on the emergency stop.
+5. **Stage 4** — section 6.
+
+If step 3 finds no map frame, run the single pick-and-place (section 5) instead
+of the stages.
+
 ## 2 · Which machine to run it on
 
 **The computer that runs the FR3 arm control stack** — the one where this prints
@@ -249,13 +268,20 @@ service and the robot, in that order, and stops at the first that fails.
 | `5` | no robot found | the control stack, `ROS_DOMAIN_ID`, `--network host`, and that you are on the arm computer |
 | `6` | the robot workspaces are not visible | the two workspace mounts, each at its own path (section 8) |
 
-Two messages are **refusals, not faults** — the policy declining to do something
-unsafe, with nothing moved:
+These messages are **refusals, not faults** — the policy declining to do
+something unsafe. The arm is homed afterwards as usual.
 
-- *"a leg has less clearance than the robot's half-width"* — the route is
-  blocked and it declined to drive it.
-- *"joint N would move X rad, over the cap"* — an arm goal was rejected before
-  being sent. The object is still held.
+- *"the route to '…' passes N cm from an obstacle, under the robot's 45 cm
+  half-width. Refused, not driven."* — something blocks the way; the base did
+  not drive it. (`--plan` shows the same leg as `FAIL`.)
+- *"the map pose is N s old … Refusing to drive on a frozen pose."* —
+  localisation stopped publishing `map -> base_link`; check it with
+  `tf2_echo map base_link` (section 4c).
+- *"joint N would move X rad, over the 0.6 rad cap"* — an arm goal was rejected
+  before being sent. Nothing moved; the object is still held.
+- *"… goal was ABORTED by the controller"* — the arm or rail controller stopped
+  a move (for example a contact reflex). The run stops rather than continue on
+  a wrong idea of where the arm is.
 
 Every stage prints its own measurement, and a run stops at the first stage that
 fails rather than carrying a fault forward. **If a run fails, those printed
@@ -267,6 +293,14 @@ lines are the diagnosis** — please send the last 20 lines and the output of
 Return the robot to its marked start pose, put the items back on the kitchen
 table, clear the destination surface, and open the gripper. Each `docker run`
 starts a fresh round; nothing carries over.
+
+To run **Stage 4 on its own**, put each item on its lettered place on the
+dining table first (cup on **c**, bowl on **b**, plate on **a**, or as the
+round's `--assign` says) and pass the same `--assign` or `--move`.
+
+To preview any run without moving anything, give it the same options with
+`--plan`, e.g. `--plan --stage 1 --move cup=a`: it prints which object goes to
+which letter and every drive it would make.
 
 ## Licence
 

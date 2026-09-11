@@ -227,13 +227,20 @@ first stage that fails rather than carrying a fault forward. **If a run fails,
 those printed lines are the diagnosis** — please send the last 20 lines and the
 output of `--version`.
 
-Two messages that are refusals rather than faults, and mean the policy is
-working as intended:
+These messages are refusals rather than faults, and mean the policy is working
+as intended. The arm is homed afterwards as usual.
 
-- **"a leg has less clearance than the robot's half-width"** — the route is
-  blocked; the robot declined to drive it.
-- **"joint N would move X rad, over the cap"** — an arm goal was rejected before
-  it was sent. The object is still held and nothing has moved.
+- **"the route to '…' passes N cm from an obstacle, under the robot's 45 cm
+  half-width. Refused, not driven."** — something blocks the way; the base did
+  not drive it. `--plan` shows the same leg as `FAIL`.
+- **"the map pose is N s old … Refusing to drive on a frozen pose."** —
+  localisation stopped publishing `map -> base_link`; check with
+  `tf2_echo map base_link`.
+- **"joint N would move X rad, over the 0.6 rad cap"** — an arm goal was
+  rejected before it was sent. Nothing moved; the object is still held.
+- **"… goal was ABORTED by the controller"** — the arm or rail controller stopped
+  a move (for example a contact reflex). The run stops rather than continue on a
+  wrong idea of where the arm is.
 
 ---
 
