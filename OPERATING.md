@@ -11,7 +11,7 @@ pick-and-place**, and the **full autonomous Stage 1**. Both come from one image.
 right build automatically.
 
 ```
-ghcr.io/sushruths04/ebim-task3-mission:1.4.0
+ghcr.io/sushruths04/ebim-task3-mission:1.4.1
 ```
 
 **On the Jetson, every `docker` command needs `--network host`** — its kernel
@@ -57,7 +57,7 @@ the log says which one is in use.
 docker run --rm --network host \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 --selftest
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --selftest
 ```
 
 Expect `self-test PASSED -- image complete, robot workspaces verified`. This
@@ -79,7 +79,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -110,7 +110,7 @@ dining table without further input.
 
 ```bash
 docker run --rm --network host -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --plan
 ```
 
 Prints every drive with its distance and the tightest clearance on it. `16/16
@@ -135,7 +135,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -151,7 +151,7 @@ Starting at the dock, for the cup, then the bowl, then the plate:
 | **3** | Picks it. |
 | **4** | **Brings the arm home, raises the rail, then drives.** The pick leaves the arm low over the table it took the object from; nothing is carried in that posture. |
 | **5** | Drives to the dining table, to the pose facing that item's lettered place. |
-| **6** | Looks for the letter with the head camera, releases the object there, and homes the arm. If the letter cannot be seen, it places in front of the pose that faces that letter, and says so in the log. |
+| **6** | Looks for the letter with the head camera, slides the base along the table if the arm needs it to reach, releases the object there, and homes the arm. If the letter cannot be seen, it places in front of the pose that faces that letter, and says so in the log. |
 | **7** | Drives back to the kitchen for the next item. |
 
 At the end the arm is returned home regardless of outcome.
@@ -178,7 +178,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   --stage 4 --i-am-on-the-estop
 ```
 

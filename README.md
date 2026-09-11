@@ -10,7 +10,7 @@ Everything needed to run it is on this page.
 ## 1 · The image
 
 ```
-ghcr.io/sushruths04/ebim-task3-mission:1.4.0
+ghcr.io/sushruths04/ebim-task3-mission:1.4.1
 ```
 
 Built for **linux/amd64 and linux/arm64**. The companion is a Jetson (arm64) and
@@ -22,7 +22,7 @@ Nothing to build. Pull it, or let `docker run` pull it on first use.
 lacks a module Docker's default bridge networking needs; every command on this
 page already includes it.
 
-### What changed in 1.4.0
+### What changed in 1.4.1
 
 Fixes everything reported against 1.3.0:
 
@@ -37,6 +37,12 @@ Fixes everything reported against 1.3.0:
 - A real run checks the robot's messages, the vision service and the robot
   itself before anything moves, and stops with a clear message and exit code
   (section 9).
+- Stages 1 and 4 drive the planned route between rooms, turn in open floor
+  before docking at a table, home the arm before the rail goes up and the base
+  drives, and slide the base along the table when needed so the arm can reach
+  the release point.
+- `--assign` sets the lettered places for a round; `--move cup=a` moves a single
+  object (section 6).
 
 ## 2 · Which machine to run it on
 
@@ -69,11 +75,11 @@ Safe at any time, a few seconds each. Please run these first.
 docker run --rm --network host \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 --selftest
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --selftest
 
 # b) print the whole driving route with clearances
 docker run --rm --network host -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 --plan
 
 # c) on the robot: is it localised in the map?
 ros2 run tf2_ros tf2_echo map base_link
@@ -107,7 +113,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
@@ -137,7 +143,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   --stage 1 --i-am-on-the-estop
 ```
 
@@ -151,7 +157,7 @@ Starting from its dock, for the cup, then the bowl, then the plate:
 | **3** | Picks it. |
 | **4** | **Brings the arm home, raises the rail, then drives.** The pick leaves the arm low over the table it took from; nothing is carried in that posture. |
 | **5** | Drives to the dining table, to the pose facing that item's lettered place. |
-| **6** | Finds the letter with the head camera, releases the object there, and homes the arm. If the letter cannot be seen it places in front of the pose that faces that letter, and says so in the log. |
+| **6** | Finds the letter with the head camera, slides the base along the table if the arm needs it to reach, releases the object there, and homes the arm. If the letter cannot be seen it places in front of the pose that faces that letter, and says so in the log. |
 | **7** | Returns to the kitchen for the next item. |
 
 The arm is homed at the end regardless of outcome.
@@ -178,7 +184,7 @@ docker run --rm --network host \
   -e VISION_ENDPOINT \
   -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
   -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
   --stage 4 --i-am-on-the-estop
 ```
 
