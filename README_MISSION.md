@@ -9,7 +9,7 @@ kitchen.
 > **Built for `linux/amd64` and `linux/arm64`.** The companion is a Jetson —
 > arm64 — and the original submitted image is amd64 only, so it cannot run
 > there. Docker picks the right architecture automatically; nothing is emulated
-> on the robot.
+> on the robot. On the Jetson every `docker` command needs `--network host`.
 >
 > This is a **second, separate image**. The pick-and-place build is unchanged
 > and remains what was submitted. This one adds room-scale navigation.
@@ -24,29 +24,33 @@ every leg with its clearance, and **commands nothing**:
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 --plan
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 --plan
 ```
 
-If every leg reports `PASS`, the robot can drive the route. Then, with an
-operator on the emergency stop:
+If every leg reports `PASS`, the robot can drive the route. Then set the vision
+service once — `export VISION_ENDPOINT='<supplied to you directly>'` — and,
+with an operator on the emergency stop:
 
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  -e TMR_WS=/ws -v $HOME/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
+  -e VISION_ENDPOINT \
+  -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
+  -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
   --stage 1 --i-am-on-the-estop
 ```
 
 | command | what it does |
 |---|---|
 | `--plan` | print the route and exit; **moves nothing** |
-| `--selftest` | check the image is complete; moves nothing |
+| `--selftest` | check the image is complete, and the robot workspaces if mounted; moves nothing |
 | `--stage 1` | kitchen table → the lettered places on the dining table |
 | `--stage 4` | dining table → the marked area in the kitchen |
 | `--stage all` | both, in order (default) |
 | `--fresh` | ignore any part-finished run and start over |
+| `--assign cup=b` | which lettered place each object goes to; default `cup=c,bowl=b,plate=a`. Naming one object is enough; the others fill the free letters. Pass the same to both stages. |
+| `--move cup=a` | move **only** the named object(s): `--stage 1 --move cup=a` takes the cup from the kitchen table to **a**; `--stage 4 --move cup=a` brings it back from **a**. Several: `cup=a,plate=c`. |
 | `autorun ...` | the **single pick-and-place**, same behaviour as the submitted build |
 
 Because the submitted image is amd64 only, this one also carries the plain
@@ -55,20 +59,30 @@ pick-and-place so a single arm64 image covers both:
 ```bash
 docker run --rm --network host \
   -e ROS_DOMAIN_ID=0 \
-  -e VISION_ENDPOINT=<supplied to the organizers directly> \
-  -e TMR_WS=/ws -v /home/tmr-user/ros2_ws:/ws:ro \
-  ghcr.io/sushruths04/ebim-task3-mission:1.3.0 \
+  -e VISION_ENDPOINT \
+  -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
+  -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.0 \
   autorun --object "the rim of the cup" --onto "the rim of the plate" \
   --i-am-on-the-estop
 ```
 
-## Environment
+## Environment and mounts
 
-| variable | required | meaning |
+| setting | required | meaning |
 |---|---|---|
 | `VISION_ENDPOINT` | for a real run | the vision service; not needed for `--plan` |
-| `TMR_WS` | **yes** | the robot's own ROS workspace, mounted into the container. The policy needs `franka_msgs` from it — the packaged version lacks the `PTPMotion` action. |
+| `ros2_ws` mount | **yes** | the robot's arm workspace. The policy needs `franka_msgs` from it — the packaged version lacks the `PTPMotion` action. |
+| `tams_ws` mount | **yes** | the robot's spine workspace, for `franka_spine_msgs` |
 | `ROS_DOMAIN_ID` | no | must match the control stack; default `0` |
+
+Mount each workspace **at its own path** (`-v X:X:ro`), as above: they are built
+with symlinks to absolute paths, so mounted anywhere else they appear empty. The
+container detects that and prints the path to use.
+
+The robot's home pose is carried in the image; mounting
+`/home/tmr-user/teleop_home_pose.yaml` onto the same path uses the host's
+current file instead.
 
 ## Which machine
 
@@ -83,11 +97,13 @@ stop, while the container and the robot are both perfectly healthy.
 
 1. Parks the idle arm inside the base envelope — both arms share one rail, so
    the idle one is put away before anything descends or drives.
-2. Plans the route around the map and whatever the sensors see now. **A leg with
-   less than the robot's own width of clearance is refused, not driven.**
+2. Plans the route around the mapped walls and furniture, through the doorway's
+   centre line, and drives exactly that route. **A route with less than the
+   robot's own half-width of clearance is refused, not driven.**
 3. Drives to the table, then closes the last stretch on the *object*, not on the
    waypoint.
-4. Picks it, carries it, and places it at the destination.
+4. Picks it, brings the arm home, raises the rail, carries it, places it at the
+   destination, and homes the arm again.
 5. Returns the arm home at the end, whatever happened.
 
 Each delivered item is recorded before the next begins, so a run stopped
@@ -95,7 +111,8 @@ part-way can be resumed inside the same container.
 
 ## Test run first — recommended sequence
 
-1. **`--selftest`** — confirms the image is complete. Moves nothing.
+1. **`--selftest`**, with the two workspace mounts — confirms the image is
+   complete and the workspaces are visible. Moves nothing.
 2. **`--plan`** — prints the route with clearances. Moves nothing.
 3. **`tf2_echo map base_link`** on the robot — confirms it is localised in the
    map, which is what makes the waypoints meaningful in your cell.
@@ -115,7 +132,9 @@ meaningful until it passes.
 | `0` | finished |
 | `1` | a stage failed, or the route is not driveable — the output names which |
 | `3` | the image is incomplete; contact us |
+| `4` | vision service unset, or no answer within 45 s |
 | `5` | no robot found — check the control stack, `ROS_DOMAIN_ID`, `--network host` |
+| `6` | the robot workspaces are not visible — mount each at its own path |
 
 ## Licence
 
