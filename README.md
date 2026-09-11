@@ -149,8 +149,27 @@ What it does, printed as it goes:
 5. Picks, returns through home, places, releases.
 6. Homes the arm.
 
-Any pair can be named, e.g. `--object "the rim of the bowl" --onto "the rim of
-the plate"`.
+Any pair can be named.
+
+**The object is always set down in the centre of the destination.** `--onto
+"the rim of the plate"` means *in the middle of the plate*: the robot finds the
+plate by its rim, fits a circle to it, and releases at the circle's centre, onto
+the plate's floor. So to put the **bowl in the centre of the plate**:
+
+```bash
+docker run --rm --network host \
+  -e ROS_DOMAIN_ID=0 \
+  -e VISION_ENDPOINT \
+  -v /home/tmr-user/ros2_ws:/home/tmr-user/ros2_ws:ro \
+  -v /home/tmr-user/tams_ws:/home/tmr-user/tams_ws:ro \
+  ghcr.io/sushruths04/ebim-task3-mission:1.4.1 \
+  autorun --object "the rim of the bowl" --onto "the rim of the plate" \
+  --i-am-on-the-estop
+```
+
+Name the **rim**, not the middle, for both: the rim is what the robot grips the
+object by and what it measures the destination by. Keep other objects a hand's
+width away from the destination, so its rim is seen on its own.
 
 ## 6 · Scenario B — the autonomous stages
 
