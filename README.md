@@ -9,16 +9,11 @@ Everything needed to run it is on this page.
 
 ## The robot running it
 
-Five recordings from the arena, each one continuous take. Filmed on a phone, so
-they are portrait and softer than the rig's own cameras.
-
 <table>
 <tr>
 <td width="50%">
 
 **Bowl into the tray** · 12 s
-
-Fixed camera, the closest view of the grasp.
 
 https://github.com/user-attachments/assets/e68bbfc2-5bac-4e6a-bb27-80af4ec4ed0d
 
@@ -35,8 +30,6 @@ https://github.com/user-attachments/assets/cd995226-40ab-4beb-bae3-06b91c131416
 <td width="50%">
 
 **Cup from the tray onto the plate, take one** · 35 s
-
-The operator's screen shows the live rim fit the grasp is planned from.
 
 https://github.com/user-attachments/assets/aa7a602c-c86c-49de-bc83-7bc601628b17
 
@@ -55,8 +48,7 @@ https://github.com/user-attachments/assets/517f82cb-209f-4633-b268-a3b2c2b10497
 **Cup into the bowl** · 24 s as shown
 
 > **This clip is slowed down from the original time-lapse recording. It does not
-> play at the robot's real speed.** Every other clip above is real time, straight
-> off the phone.
+> play at the robot's real speed.**
 
 https://github.com/user-attachments/assets/1476cb16-28f6-4556-b693-a7c65c700f21
 
