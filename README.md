@@ -9,33 +9,60 @@ Everything needed to run it is on this page.
 
 ## The robot running it
 
-Five recordings from the arena. Each is one continuous take, filmed on a phone,
-so they are portrait and softer than the rig's own cameras.
+Five recordings from the arena, each one continuous take. Filmed on a phone, so
+they are portrait and softer than the rig's own cameras.
 
-**Bowl into the tray** · 12 s · fixed camera, the closest view of the grasp
+<table>
+<tr>
+<td width="50%">
+
+**Bowl into the tray** · 12 s
+
+Fixed camera, the closest view of the grasp.
 
 https://github.com/user-attachments/assets/e68bbfc2-5bac-4e6a-bb27-80af4ec4ed0d
+
+</td>
+<td width="50%">
 
 **Cup into the tray** · 22 s
 
 https://github.com/user-attachments/assets/cd995226-40ab-4beb-bae3-06b91c131416
 
-**Cup from the tray onto the plate, take one** · 35 s · the operator's screen
-shows the live rim fit the grasp is planned from
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**Cup from the tray onto the plate, take one** · 35 s
+
+The operator's screen shows the live rim fit the grasp is planned from.
 
 https://github.com/user-attachments/assets/aa7a602c-c86c-49de-bc83-7bc601628b17
+
+</td>
+<td width="50%">
 
 **Cup from the tray onto the plate, take two** · 39 s
 
 https://github.com/user-attachments/assets/517f82cb-209f-4633-b268-a3b2c2b10497
 
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
 **Cup into the bowl** · 24 s as shown
 
-> **This clip is slowed down from the original time-lapse recording. It does
-> not play at the robot's real speed.** Every other clip on this page is real
-> time, straight off the phone.
+> **This clip is slowed down from the original time-lapse recording. It does not
+> play at the robot's real speed.** Every other clip above is real time, straight
+> off the phone.
 
 https://github.com/user-attachments/assets/1476cb16-28f6-4556-b693-a7c65c700f21
+
+</td>
+</tr>
+</table>
 
 ## 1 · The image
 
